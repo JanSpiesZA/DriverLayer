@@ -316,13 +316,13 @@ void loop()
 
     newW *= -1.0;
 
-//    lcd.setCursor(0,0);
-//    lcd.print("v: ");
-//    lcd.print(newV,DEC);
-//
-//    lcd.setCursor(0,1);
-//    lcd.print("w: ");
-//    lcd.print(newW,DEC);
+    lcd.setCursor(0,0);
+    lcd.print("v: ");
+    lcd.print(newV,DEC);
+
+    lcd.setCursor(0,1);
+    lcd.print("w: ");
+    lcd.print(newW,DEC);
         
     velocityControl(newV,newW);      //Sends new v and w values to the motor controller 
 
