@@ -4,6 +4,8 @@
 //Interface HB25 Motor Control from Parallax 
 
 //BOARD: Arduino MEGA
+//SHIELDS:
+//http://www.dfrobot.com/wiki/index.php/LCD_KeyPad_Shield_For_Arduino_SKU:_DFR0009
 
 
 
@@ -14,12 +16,15 @@
 //Turn the HB25 motor controllers off BEFORE turning the Mega off
 
 #include <Servo.h>
+#include <LiquidCrystal.h>
 
 //DO NOT CHANGE THESE PIN ASSIGNMENTS
 Servo leftWheelServo;
 Servo rightWheelServo;
 const int leftWheel = 13;   //Servo control output for HB25
 const int rightWheel = 12;  //Servo control output for HB25
+
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
 //The following pins are used for the encoder inputs
 const int chn_l_a = 2;  //Left wheel encoder channel A - Brown
@@ -108,12 +113,20 @@ float e_angle_old = 0.0;
 float w_old = 0.0;
 float phi_desired = 0.0;
 
+int txCntr = 0;
+
 void setup()
 {
   setupMotorControl();
   
   Serial.begin(115200);
-  Serial.println("Started:");  
+  Serial.println("Started:"); 
+
+   lcd.begin(16,2);
+   lcd.setCursor(0,0);
+   lcd.print("Started"); 
+   delay(1000); 
+   lcd.clear();
   
     v = 0;                  
     w = 0;    
@@ -129,7 +142,7 @@ void loop()
       
       switch(c)
       {
-        case '.':      //new command line starts
+        case '<':      //new command line starts
         index = 0;
         break;
         
@@ -141,12 +154,20 @@ void loop()
         default:
           serialData += c;        //Add serial data input char to string
           break;
-      }
-    }
+      }      
+    }   
+    
     
     //Parse die seriedata
     if (done == true)
     {
+      txCntr ++;
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print(txCntr,DEC);
+      lcd.print(":");
+    lcd.print(serialData);
+    
       done = false;
       
       char testChar = serialData.charAt(0);
@@ -294,6 +315,14 @@ void loop()
     newW = max(-0.5, newW);
 
     newW *= -1.0;
+
+    lcd.setCursor(0,0);
+    lcd.print("v: ");
+    lcd.print(newV,DEC);
+
+    lcd.setCursor(0,1);
+    lcd.print("w: ");
+    lcd.print(newW,DEC);
         
     velocityControl(newV,newW);      //Sends new v and w values to the motor controller 
 
