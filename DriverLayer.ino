@@ -108,9 +108,6 @@ float e_angle_old = 0.0;
 float w_old = 0.0;
 float phi_desired = 0.0;
 
-
-
-
 void setup()
 {
   setupMotorControl();
@@ -132,7 +129,7 @@ void loop()
       
       switch(c)
       {
-        case '<':      //new command line starts
+        case '.':      //new command line starts
         index = 0;
         break;
         
@@ -289,8 +286,16 @@ void loop()
     w_old = w;
     e_angle_old = e_angle;    
     */
+
+    float newV = min(v,200);
+    newV = max(-200,newV);
+
+    float newW = min (w,0.5);
+    newW = max(-0.5, newW);
+
     
-    velocityControl(v,w);      //Sends new v and w values to the motor controller 
+        
+    velocityControl(newV,newW);      //Sends new v and w values to the motor controller 
 
     old_time = time;
   }  //end of PID Interval
