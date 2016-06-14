@@ -293,7 +293,7 @@ void loop()
     float newW = min (w,0.5);
     newW = max(-0.5, newW);
 
-    
+    newW *= -1.0;
         
     velocityControl(newV,newW);      //Sends new v and w values to the motor controller 
 
