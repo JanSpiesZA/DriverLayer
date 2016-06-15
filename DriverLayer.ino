@@ -259,6 +259,7 @@ void loop()
       }
       serialData = "";
     }
+
   
 
 
@@ -308,23 +309,19 @@ void loop()
     e_angle_old = e_angle;    
     */
 
-    float newV = min(v,200);
-    newV = max(-200,newV);
+//    float newV = min(v,200);
+//    newV = max(-200,newV);
+//
+//    float newW = min (w,0.5);
+//    newW = max(-0.5, newW);
 
-    float newW = min (w,0.5);
-    newW = max(-0.5, newW);
+    //newW *= -1.0;
 
-    newW *= -1.0;
+    w *= -1;
 
-    lcd.setCursor(0,0);
-    lcd.print("v: ");
-    lcd.print(newV,DEC);
-
-    lcd.setCursor(0,1);
-    lcd.print("w: ");
-    lcd.print(newW,DEC);
-        
-    velocityControl(newV,newW);      //Sends new v and w values to the motor controller 
+    
+        velocityControl(v,w);      //Sends new v and w values to the motor controller 
+//    velocityControl(newV,newW);      //Sends new v and w values to the motor controller 
 
     old_time = time;
   }  //end of PID Interval
