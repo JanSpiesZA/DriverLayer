@@ -308,20 +308,9 @@ void loop()
     w_old = w;
     e_angle_old = e_angle;    
     */
-
-//    float newV = min(v,200);
-//    newV = max(-200,newV);
-//
-//    float newW = min (w,0.5);
-//    newW = max(-0.5, newW);
-
-    //newW *= -1.0;
-
-   // w *= -1;
-
     
-        velocityControl(v,w);      //Sends new v and w values to the motor controller 
-//    velocityControl(newV,newW);      //Sends new v and w values to the motor controller 
+    velocityControl(v,w);      //Sends new v and w values to the motor controller 
+
 
     old_time = time;
   }  //end of PID Interval
