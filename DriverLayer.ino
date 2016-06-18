@@ -127,6 +127,7 @@ void setup()
    lcd.print("Started"); 
    delay(1000); 
    lcd.clear();
+   lcd.print("Running");
   
     v = 0;                  
     w = 0;    
@@ -161,9 +162,8 @@ void loop()
     //Parse die seriedata
     if (done == true)
     {
-      txCntr ++;
-      lcd.clear();
-      lcd.setCursor(0,0);
+      txCntr ++;      
+      lcd.setCursor(0,1);
       lcd.print(txCntr,DEC);
       lcd.print(":");
     lcd.print(serialData);
@@ -317,7 +317,7 @@ void loop()
 
     //newW *= -1.0;
 
-    w *= -1;
+   // w *= -1;
 
     
         velocityControl(v,w);      //Sends new v and w values to the motor controller 
