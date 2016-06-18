@@ -27,10 +27,10 @@ const int rightWheel = 12;  //Servo control output for HB25
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
 //The following pins are used for the encoder inputs
-const int chn_l_a = 2;  //Left wheel encoder channel A - Brown
-const int chn_l_b = 3;  //Left wheel encoder channel B - Purple
-const int chn_r_a = 20;  //Right wheel encoder channel A - Brown
-const int chn_r_b = 21;  //Right wheel encoder channel B - Purple
+const int chn_l_a = 2;  //Left wheel encoder channel A - Interupt 0
+const int chn_l_b = 3;  //Left wheel encoder channel B - Interupt 1
+const int chn_r_a = 20;  //Right wheel encoder channel A - Interupt 3
+const int chn_r_b = 21;  //Right wheel encoder channel B - Interupt 2
 
 //DO NOT CHANGE THESE ASSIGNMENTS
 const boolean fwd = 1;
@@ -323,6 +323,8 @@ void loop()
 void setupMotorControl()
 {  
   //Attaches the encoder inputs to interrupts in order to catch state changes
+  //Ints attached to pins 2,3 and 20,21
+  //If int fires, ISR readEncoder will be called and executed
   attachInterrupt(0,readencoder, CHANGE);
   attachInterrupt(1,readencoder, CHANGE);  
   attachInterrupt(2,readencoder, CHANGE);
@@ -393,12 +395,13 @@ void velocityControl(float v1, float w1)
   error_dist_old = error_dist;       
 }
 
+//Interupt Service Routine
+//Run whenever interupt 0,1,2,3 fires as attached in setupMotorControl() to the different wheel encoder inputs
 void readencoder()
 {
   //Use this section if using quad input encoders  
   currLeft = B00110000 & PINE;
   currRight = B00000011 & PIND;
-  //Serial.println("int");
   currLeft = currLeft >> 4;
   prevLeft = prevLeft << 2;  
   encIn = currLeft | prevLeft;
@@ -411,14 +414,3 @@ void readencoder()
   encCntRight += encoderArray[encIn];
   prevRight = currRight;
 }
-
-
-/*********************************************************
-//Int vector for when state change interupt fires on PORTD
-/*********************************************************/
-/*
-ISR(PCINT2_vect)
-{
-  readencoder();  
-}
-*/
