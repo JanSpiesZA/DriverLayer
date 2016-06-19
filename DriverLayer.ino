@@ -286,12 +286,12 @@ void loop()
       Serial.print(w);    
       Serial.println();
     }
+    
     s_l = 2*pi*wheel_radius * ticks_l / PID_dc / ticks_per_rev;   //Must devide by PID_dc in order to get real delta value
     s_r = 2*pi*wheel_radius * ticks_r / PID_dc / ticks_per_rev;    
     s = (s_l + s_r) / 2;
     delta_phi = (s_r - s_l) / wheelbase;
     
-
     delta_x = s*cos(robotState[2]);
     delta_y = s*sin(robotState[2]);
     robotState[0] += delta_x;
@@ -310,7 +310,6 @@ void loop()
     */
     
     velocityControl(v,w);      //Sends new v and w values to the motor controller 
-
 
     old_time = time;
   }  //end of PID Interval
@@ -345,11 +344,12 @@ void setupMotorControl()
 
 //Implementation of the vw (vOmega) interface from the book - Embedded Robotics, Chp 5.5, p98
 
-//Calculate current ticks, for each wheel, based on encCntLeft and encCntRight values
-//Calculate wanted ticks for each wheel based on v and w values
-//Calculate the error value in the ticks
-//Apply values into PID loop for ech wheel and for distance the wheels travelled - Chp 5.4, p98
-//Use PID return values as new motor control inputs
+//The following steps are followed
+  //Calculate current ticks, for each wheel, based on encCntLeft and encCntRight values
+  //Calculate wanted ticks for each wheel based on v and w values
+  //Calculate the error value in the ticks
+  //Apply values into PID loop for ech wheel and for distance the wheels travelled - Chp 5.4, p98
+  //Use PID return values as new motor control inputs
 
 void velocityControl(float v1, float w1)
 {
