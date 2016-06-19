@@ -271,19 +271,19 @@ void loop()
   {
     if (debug)
     {      
-    Serial.print(robotState[0]);
-    Serial.print(":");
-    Serial.print(robotState[1]);        
-    Serial.print(":");
-    Serial.print(robotState[2]);
-    Serial.print('\t');
-    Serial.print(s_l);
-    Serial.print('\t');
-    Serial.print(s_r);        
-    Serial.print('\t');
-    Serial.print(e_angle);
-    Serial.print('\t');
-    Serial.print(w);    
+      Serial.print(robotState[0]);
+      Serial.print(":");
+      Serial.print(robotState[1]);        
+      Serial.print(":");
+      Serial.print(robotState[2]);
+      Serial.print('\t');
+      Serial.print(s_l);
+      Serial.print('\t');
+      Serial.print(s_r);        
+      Serial.print('\t');
+      Serial.print(e_angle);
+      Serial.print('\t');
+      Serial.print(w);    
       Serial.println();
     }
     s_l = 2*pi*wheel_radius * ticks_l / PID_dc / ticks_per_rev;   //Must devide by PID_dc in order to get real delta value
@@ -343,13 +343,23 @@ void setupMotorControl()
   rightWheelServo.attach(rightWheel);
 }
 
+//Implementation of the vw (vOmega) interface from the book - Embedded Robotics, Chp 5.5, p98
+
+//Calculate current ticks, for each wheel, based on encCntLeft and encCntRight values
+//Calculate wanted ticks for each wheel based on v and w values
+//Calculate the error value in the ticks
+//Apply values into PID loop for ech wheel and for distance the wheels travelled - Chp 5.4, p98
+//Use PID return values as new motor control inputs
 
 void velocityControl(float v1, float w1)
 {
+  //PID_dc --> It is the duty cycle for the updates send to the PID controller.
+  //Ticks_l and ticks_r must be multiplied with this value to calculate the total ticks per second
   ticks_l = (encCntLeft - prevEncCntLeft) * PID_dc;    //Calculates the ticks per second for left wheel
   ticks_r = (encCntRight - prevEncCntRight) * PID_dc;  //Calcualtes the ticks per second for the right wheel
     
-  float dotOmega_L = (v1 - wheelbase/2*w1)/wheel_circ;
+  //wheel_circ = 1/(2*pi*radius-of-weel)
+  float dotOmega_L = (v1 - wheelbase/2*w1)/wheel_circ;    //Embedded Robotics, Chp 8.6, p 143, Inverse Kinematics
   ticks_desired_l = dotOmega_L * ticks_per_rev;
   float dotOmega_R = (v1 + wheelbase/2*w1)/wheel_circ;
   ticks_desired_r = dotOmega_R * ticks_per_rev;
@@ -397,18 +407,17 @@ void velocityControl(float v1, float w1)
 
 //Interupt Service Routine
 //Run whenever interupt 0,1,2,3 fires as attached in setupMotorControl() to the different wheel encoder inputs
+//Implemented the quad interface from the following website: http://mkesc.co.uk/ise.pdf
 void readencoder()
-{
-  //Use this section if using quad input encoders  
-  currLeft = B00110000 & PINE;
-  currRight = B00000011 & PIND;
-  currLeft = currLeft >> 4;
-  prevLeft = prevLeft << 2;  
-  encIn = currLeft | prevLeft;
-  encCntLeft += encoderArray[encIn];
+{   
+  currLeft = B00110000 & PINE;    //Pin2 is mapped to PE4, Pin3 is mapped to PE5
+  currRight = B00000011 & PIND;   //Pin21 is mappeed to PD0, Pin20 is mapped to PD1
+  currLeft = currLeft >> 4;       //Shift currLeft variable to Bit0 and Bit1
+  prevLeft = prevLeft << 2;       //Shift prevLeft value to Bit2 and Bit3
+  encIn = currLeft | prevLeft;    //Combine currLeft and prevLeft into one variable used to determine
+  encCntLeft += encoderArray[encIn];    //what value must be added to encCntLeft
   prevLeft = currLeft;
-
-  //currRight = currRight >> 6;
+  
   prevRight = prevRight << 2;
   encIn = currRight | prevRight;
   encCntRight += encoderArray[encIn];
