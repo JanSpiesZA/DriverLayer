@@ -38,7 +38,7 @@ const boolean rev = 0;
 const int encoderArray[]={0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0};    //Array used to increment encoder values
 const float pi = 3.142;
 float v = 0.0;      //Velocity of center point of robot measured in mm/second
-float w = 0.0;    //Vehicle's rotational speed measured in 
+float w = 0.0;    //Vehicle's rotational speed measured in millie radials per seconds
 unsigned long int old_time = 0;
 unsigned long int time = 0;
 int delta_t = 99;    //time used by PID controller to update control data in milli-seconds
@@ -166,7 +166,8 @@ void loop()
       lcd.setCursor(0,1);
       lcd.print(txCntr,DEC);
       lcd.print(":");
-    lcd.print(serialData);
+      lcd.print(serialData);
+      lcd.print(" - ");
     
       done = false;
       
@@ -180,7 +181,10 @@ void loop()
           String value = "";
           for (int i = 1; i <= len; i++) 
             value += serialData.charAt(i);
+            
           v = value.toInt();
+
+          lcd.print(v);
           
           if (debug)
           {
@@ -198,7 +202,12 @@ void loop()
           for (int i = 1; i<=len; i++) 
             value += serialData.charAt(i);
             
-          w = value.toInt();
+          w = value.toInt();   
+
+          w = w / 1000;
+          
+          lcd.print(w);
+    
           if (debug)
           {
             Serial.println ("Turning rate");          
