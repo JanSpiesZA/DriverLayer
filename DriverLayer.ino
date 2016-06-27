@@ -204,7 +204,9 @@ void loop()
             
           w = value.toInt();   
 
-          w = w / 1000;
+          //w is a float multiplied by 1000 to convert it to integer, now it must
+          //  be divided by 1000 to convert it back to float
+          w = w / 1000;   
           
           lcd.print(w);
     
