@@ -113,7 +113,15 @@ float e_angle_old = 0.0;
 float w_old = 0.0;
 float phi_desired = 0.0;
 
-int txCntr = 0;
+int txCntr = 0;     //CNTR used to show the amount of transactions already received
+
+
+int sensorAddr[] = {3,0,4,1,5,2,6};     //Array used to store the addresses of the SRF02 sensors in the order in which they must be read
+//sizeof give the amount of bytes used in the array and not the actual elements. When using int every element is 2 bytes long
+//  therefore the value must be divided by the siezeof(int) to get the total amount of elements in the array
+const int numSensors = sizeof(sensorAddr)/ sizeof(int);    
+int sensorDist[numSensors];
+
 
 void setup()
 {
@@ -121,6 +129,8 @@ void setup()
   
   Serial.begin(115200);
   Serial.println("Started:"); 
+
+  Serial3.begin(9200);
 
    lcd.begin(16,2);
    lcd.setCursor(0,0);
@@ -267,12 +277,32 @@ void loop()
           Serial.print(">");          
           break;
         }
+        
+        //Sends the sensor data back through Serial port
+        case 's':
+        {
+          //Reads the distance data saved in each sensor
+          for (int n = 0; n <= numSensors-1; n++)
+          { 
+            sensorDist[n] = getRange(sensorAddr[n]);           
+            delay(10);
+          }
+
+          //Sends the data through the Serial port
+          for (int n = 0; n <= numSensors-1; n++)
+            {
+              Serial.print(sensorAddr[n]);
+              Serial.print(':');
+              Serial.print(sensorDist[n]);  
+              Serial.print('\t');  
+            }
+            Serial.println();
+            break;
+          }
+        
       }
       serialData = "";
     }
-
-  
-
 
 
 // This routine is executed every delta_t and is used to update the motor control values
@@ -323,6 +353,14 @@ void loop()
     velocityControl(v,w);      //Sends new v and w values to the motor controller 
 
     old_time = time;
+
+    //Get data from SRF02 sensors
+    for (int n = 0; n <= numSensors-1; n++)
+      { 
+        ping(sensorAddr[n]);
+        delay(15);
+      }
+    
   }  //end of PID Interval
 
 } //end of Loop()

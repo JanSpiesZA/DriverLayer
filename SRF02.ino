@@ -7,16 +7,16 @@
 
 void ping(int _sensorAddr)
 {
-   Serial.print("PING Sensor with adr: #");
-   Serial.println(_sensorAddr);
+   //Serial.print("PING Sensor with adr: #");
+   //Serial.println(_sensorAddr);
    Serial3.write(_sensorAddr);
    Serial3.write(CMD_REAL_RANGE_NO_TX_cm);
 }
 
 int getRange(int _sensorAddr)
 {
-  Serial.print("Requesting data from sensor: #");
-  Serial.println(_sensorAddr);
+  //Serial.print("Requesting data from sensor: #");
+  //Serial.println(_sensorAddr);
   Serial3.write(_sensorAddr);
   Serial3.write(CMD_GET_RANGE);
 
