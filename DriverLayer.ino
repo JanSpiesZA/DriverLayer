@@ -113,6 +113,9 @@ float e_angle_old = 0.0;
 float w_old = 0.0;
 float phi_desired = 0.0;
 
+const int maxV = 400;
+const int maxW = 2;
+
 int txCntr = 0;     //CNTR used to show the amount of transactions already received
 
 
@@ -130,7 +133,7 @@ void setup()
   Serial.begin(115200);
   Serial.println("Started:"); 
 
-  Serial3.begin(9200);
+  Serial3.begin(9600);
 
    lcd.begin(16,2);
    lcd.setCursor(0,0);
@@ -194,6 +197,7 @@ void loop()
             
           v = value.toInt();
 
+          
           lcd.print(v);
           
           if (debug)
@@ -211,6 +215,7 @@ void loop()
           
           for (int i = 1; i<=len; i++) 
             value += serialData.charAt(i);
+
             
           w = value.toInt();   
 
@@ -218,6 +223,7 @@ void loop()
           //  be divided by 1000 to convert it back to float
           w = w / 1000;   
           
+          lcd.print("                ");
           lcd.print(w);
     
           if (debug)
@@ -267,14 +273,8 @@ void loop()
         }
         
         case '?':
-        {
-          Serial.print("<?");          
-          Serial.print(robotState[0]);
-          Serial.print(":");
-          Serial.print(robotState[1]);        
-          Serial.print(":");
-          Serial.print(robotState[2]);
-          Serial.print(">");          
+        {              
+          
           break;
         }
         
@@ -282,19 +282,20 @@ void loop()
         case 's':
         {
           //Reads the distance data saved in each sensor
-          for (int n = 0; n <= numSensors-1; n++)
-          { 
-            sensorDist[n] = getRange(sensorAddr[n]);           
-            delay(10);
-          }
+//          for (int n = 0; n <= numSensors-1; n++)
+//          { 
+//            sensorDist[n] = getRange(sensorAddr[n]);           
+//            delay(10);
+//          }
 
           //Sends the data through the Serial port
+          Serial.print('s');
           for (int n = 0; n <= numSensors-1; n++)
             {
               Serial.print(sensorAddr[n]);
               Serial.print(':');
               Serial.print(sensorDist[n]);  
-              Serial.print('\t');  
+              Serial.print(',');  
             }
             Serial.println();
             break;
@@ -337,7 +338,12 @@ void loop()
     delta_y = s*sin(robotState[2]);
     robotState[0] += delta_x;
     robotState[1] += delta_y;    
-    robotState[2] += delta_phi;    
+    robotState[2] += delta_phi;  
+
+    if (robotState[2] < -PI) robotState[2] += 2*PI;
+    if (robotState[2] > PI) robotState[2] -= 2*PI;
+
+    sendPos();
     
     //Angle PID control
     /*
@@ -349,17 +355,19 @@ void loop()
     w_old = w;
     e_angle_old = e_angle;    
     */
-    
+
+    v = min (v, maxV);
+    v = max (v, -maxV);
     velocityControl(v,w);      //Sends new v and w values to the motor controller 
 
     old_time = time;
 
     //Get data from SRF02 sensors
-    for (int n = 0; n <= numSensors-1; n++)
-      { 
-        ping(sensorAddr[n]);
-        delay(15);
-      }
+//    for (int n = 0; n <= numSensors-1; n++)
+//      { 
+//        ping(sensorAddr[n]);
+//        delay(15);
+//      }
     
   }  //end of PID Interval
 
@@ -367,6 +375,18 @@ void loop()
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Funtions and Procedures start here
+
+//Send robot position on serial port
+void sendPos()
+{
+  Serial.print("?");
+  Serial.print(robotState[0]);
+  Serial.print(",");
+  Serial.print(robotState[1]);        
+  Serial.print(",");
+  Serial.print(robotState[2]);         
+  Serial.println(); 
+}
 
 void setupMotorControl()
 {  
