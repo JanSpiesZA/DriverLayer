@@ -44,6 +44,15 @@ unsigned long int time = 0;
 int delta_t = 99;    //time used by PID controller to update control data in milli-seconds
 const float PID_dc = 1000 / (delta_t + 1);    //Calcualte how many times this loop fires per second ie converts delta_t to Hz
 
+//### Time variables used to timewhen new data must be sent serially
+unsigned long int oldTimeTX = 0;
+int deltaTX = 299;
+
+//### Time variables used to ping each ultrasound sensor
+unsigned long int oldTimePing = 0;
+int deltaPing = 49;
+
+
 //Robot STATE variables
 float s_l = 0.0;    //Linear distance in milli-meters traveled by left wheel PER UPDATE CYCLE OF PID LOOP
 float s_r = 0.0;    //Linear distance in milli-meters traveled by right wheel PER UPDATE CYCLE OF PID LOOP
@@ -113,14 +122,30 @@ float e_angle_old = 0.0;
 float w_old = 0.0;
 float phi_desired = 0.0;
 
-int txCntr = 0;
+const int maxV = 400;
+const int maxW = 2;
+
+int txCntr = 0;     //CNTR used to show the amount of transactions already received
+
+
+int sensorAddr[] = {3,0,4,1,5,2,6};     //Array used to store the addresses of the SRF02 sensors in the order in which they must be read
+//sizeof give the amount of bytes used in the array and not the actual elements. When using int every element is 2 bytes long
+//  therefore the value must be divided by the siezeof(int) to get the total amount of elements in the array
+const int numSensors = sizeof(sensorAddr)/ sizeof(int);    
+int sensorDist[numSensors];
+int sensorCnt = 0; //Cntr used to keep track of the sensors ping'ed
+
 
 void setup()
 {
   setupMotorControl();
-  
+
+  //### Comm port for comms to PC
   Serial.begin(115200);
   Serial.println("Started:"); 
+
+  //### Comm port for SRF sensors
+  Serial2.begin(9600);
 
    lcd.begin(16,2);
    lcd.setCursor(0,0);
@@ -136,7 +161,7 @@ void setup()
 
 void loop()
 {  
-    //Lees seriedata tot 'n EOL karakter gekry word
+    //###Lees seriedata tot 'n EOL karakter gekry word
     if (Serial.available() >0)
     {
       char c = Serial.read();
@@ -184,6 +209,7 @@ void loop()
             
           v = value.toInt();
 
+          
           lcd.print(v);
           
           if (debug)
@@ -201,6 +227,7 @@ void loop()
           
           for (int i = 1; i<=len; i++) 
             value += serialData.charAt(i);
+
             
           w = value.toInt();   
 
@@ -208,6 +235,7 @@ void loop()
           //  be divided by 1000 to convert it back to float
           w = w / 1000;   
           
+          lcd.print("                ");
           lcd.print(w);
     
           if (debug)
@@ -257,29 +285,46 @@ void loop()
         }
         
         case '?':
-        {
-          Serial.print("<?");          
-          Serial.print(robotState[0]);
-          Serial.print(":");
-          Serial.print(robotState[1]);        
-          Serial.print(":");
-          Serial.print(robotState[2]);
-          Serial.print(">");          
+        {              
+          
           break;
         }
+        
+        //Sends the sensor data back through Serial port
+        case 's':
+        {
+          //Reads the distance data saved in each sensor
+//          for (int n = 0; n <= numSensors-1; n++)
+//          { 
+//            sensorDist[n] = getRange(sensorAddr[n]);           
+//            delay(10);
+//          }
+
+          //Sends the data through the Serial port
+          Serial.print('s');
+          for (int n = 0; n <= numSensors-1; n++)
+            {
+              Serial.print(sensorAddr[n]);
+              Serial.print(':');
+              Serial.print(sensorDist[n]);  
+              Serial.print(',');  
+            }
+            Serial.println();
+            break;
+          }
+        
       }
       serialData = "";
     }
 
+    time = millis();
   
 
-
-
-// This routine is executed every delta_t and is used to update the motor control values
-  time = millis();    //Get the current millis() value from the Arduino
+  //### This routine is executed every delta_t and is used to update the motor control values  
   int interval = time-old_time; 
   if (interval > delta_t)    //Enter IF after delay of delta_t seconds
   {
+    //Serial.print(" PID ");    
     if (debug)
     {      
       Serial.print(robotState[0]);
@@ -301,13 +346,18 @@ void loop()
     s_l = 2*pi*wheel_radius * ticks_l / PID_dc / ticks_per_rev;   //Must devide by PID_dc in order to get real delta value
     s_r = 2*pi*wheel_radius * ticks_r / PID_dc / ticks_per_rev;    
     s = (s_l + s_r) / 2;
-    delta_phi = (s_r - s_l) / wheelbase;
+    delta_phi = (s_r - s_l) / wheelbase;    //+w = counter clockwise
     
     delta_x = s*cos(robotState[2]);
     delta_y = s*sin(robotState[2]);
     robotState[0] += delta_x;
     robotState[1] += delta_y;    
-    robotState[2] += delta_phi;    
+    robotState[2] += delta_phi;  
+
+    if (robotState[2] < -PI) robotState[2] += 2*PI;
+    if (robotState[2] > PI) robotState[2] -= 2*PI;
+
+    
     
     //Angle PID control
     /*
@@ -319,17 +369,86 @@ void loop()
     w_old = w;
     e_angle_old = e_angle;    
     */
-    
+
+    v = min (v, maxV);
+    v = max (v, -maxV);
     velocityControl(v,w);      //Sends new v and w values to the motor controller 
 
-    old_time = time;
+    old_time = time;    
   }  //end of PID Interval
 
+  //### This routine sends serial data to PC every deltaTX time    
+  int newTimeInterval = time - oldTimeTX;
+  if (newTimeInterval > deltaTX)
+  {
+    //Serial.println(" TX Data ");
+    sendPos();
+    sendSensor();
+    
+    //###Tell sensors to determine range to nearest obstacle
+//    for (int n = 0; n <= numSensors-1; n++)
+//      { 
+//        ping(sensorAddr[n]);
+//        delay(20);
+//      }
+    oldTimeTX = time;
+  }
+
+
+
+  //## This routine sends a ping request to a different SRF every deltaPing millis
+  int newPingInterval = time - oldTimePing;
+  if (newPingInterval > deltaPing)
+  {    
+    //Serial.print("PING ");
+    if (sensorCnt <= numSensors-1)
+    {      
+      //Serial.print (sensorCnt);
+      ping(sensorAddr[sensorCnt]);
+      sensorCnt ++;
+      //delay(20);
+    }
+    else
+    {
+      sensorCnt = 0;
+    }
+    oldTimePing = time;    
+  }
 } //end of Loop()
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Funtions and Procedures start here
 
+//Send robot position on serial port
+void sendPos()
+{
+  Serial.print("?");
+  Serial.print(robotState[0]);
+  Serial.print(",");
+  Serial.print(robotState[1]);        
+  Serial.print(",");
+  Serial.print(robotState[2]);         
+  Serial.println(); 
+}
+
+//###Send sensor data
+void sendSensor()
+{
+  Serial.print('d');
+  for (int n = 0; n <= numSensors-1; n++)
+  { 
+    sensorDist[n] = getRange(sensorAddr[n]);  
+    Serial.print(sensorAddr[n]);
+    Serial.print(':');
+    Serial.print(sensorDist[n]);  
+    Serial.print(',');    
+    delay(1);
+  }
+  Serial.println();
+}
+
+
+//###
 void setupMotorControl()
 {  
   //Attaches the encoder inputs to interrupts in order to catch state changes
