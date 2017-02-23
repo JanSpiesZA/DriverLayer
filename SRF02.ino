@@ -17,16 +17,42 @@ void ping(int _sensorAddr)
 
 //###Reads range data from sensor buffer
 int getRange(int _sensorAddr)
-{
+{  
 //  Serial.print("Requesting data from sensor: #");
 //  Serial.println(_sensorAddr);
+  
   Serial2.write(_sensorAddr);
   Serial2.write(CMD_GET_RANGE);
-
-  while(Serial2.available() < 2);     //Wait until 2 bytes received
+  
+  //int startTime = millis();
+  while((Serial2.available() < 2));
+  
   int rxData = Serial2.read()<<8;
   rxData |= Serial2.read();
+  //Serial.println("RX'd");
   return rxData;
 }
+
+//void serialEvent2()
+//{
+//  while (Serial2.available()
+//  {
+//    char 
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

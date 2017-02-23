@@ -52,6 +52,8 @@ int deltaTX = 299;
 unsigned long int oldTimePing = 0;
 int deltaPing = 49;
 
+const int lf = 10;    //Declares a line feed character
+
 
 //Robot STATE variables
 float s_l = 0.0;    //Linear distance in milli-meters traveled by left wheel PER UPDATE CYCLE OF PID LOOP
@@ -61,7 +63,6 @@ float phi = 0.0;    //Instantaneous heading change
 float delta_x = 0.0;  //Instantaneous change in x pos
 float delta_y = 0.0;  //Instantaneous change in y pos
 float delta_phi = 0.0;//Instantaneous change in phi
-const int lf = 10;    //Declares a line feed character
 
 //DO NOT CHANGE THE FOLLOWING VARIABLES
 //These variable are used in the operation of the speed controller
@@ -115,7 +116,7 @@ int index = 0;
 boolean done = false;
 float robotState[] = {0.0,0.0,0.0};
 
-float Kp_w = 1;      //Proportional gain parameter for turn rate
+float Kp_w = 0.1;      //Proportional gain parameter for turn rate
 float Ki_w = 0.1;      //Integral gain parameter for turn rate;
 float e_angle = 0.0;
 float e_angle_old = 0.0;
@@ -135,6 +136,7 @@ const int numSensors = sizeof(sensorAddr)/ sizeof(int);
 int sensorDist[numSensors];
 int sensorCnt = 0; //Cntr used to keep track of the sensors ping'ed
 
+double iTerm;
 
 void setup()
 {
@@ -361,15 +363,24 @@ void loop()
     
     //Angle PID control
     /*
-    e_angle = phi_desired - robotState[2];
-        
+    phi_desired = w;
+    e_angle = 0.1 * (phi_desired - robotState[2]);
+    /*    
     w = w_old + Kp_w * (e_angle - e_angle_old) + Ki_w * (e_angle + e_angle_old)/2;
-    w = min(w, 10);
-    w = max(w, -10);
+    w = min(w, 1);
+    w = max(w, -1);
     w_old = w;
     e_angle_old = e_angle;    
-    */
+    */       
 
+//    phi_desired = w;
+//    float errorAngle = phi_desired - robotState[2];
+//
+//    if (errorAngle < -PI) errorAngle += (2*PI);
+//    if (errorAngle > PI) errorAngle -= (2*PI);  
+//
+//    w = 3*min(errorAngle,150);      
+    
     v = min (v, maxV);
     v = max (v, -maxV);
     velocityControl(v,w);      //Sends new v and w values to the motor controller 
@@ -392,6 +403,8 @@ void loop()
 //        delay(20);
 //      }
     oldTimeTX = time;
+    delay(10);
+    //Serial.println("Exit: send data");
   }
 
 
@@ -406,7 +419,7 @@ void loop()
       //Serial.print (sensorCnt);
       ping(sensorAddr[sensorCnt]);
       sensorCnt ++;
-      //delay(20);
+      //delay(1);
     }
     else
     {
@@ -434,15 +447,25 @@ void sendPos()
 //###Send sensor data
 void sendSensor()
 {
+  //###Read sensor distance data from all sensors
+  for (int n = 0; n <= numSensors - 1; n++)
+  {
+    if (n != sensorCnt)
+    {
+      sensorDist[n] = getRange(sensorAddr[n]);
+      delay(1);
+    }    
+  }
+
+  //###Send sensor distance to PC
   Serial.print('d');
   for (int n = 0; n <= numSensors-1; n++)
-  { 
-    sensorDist[n] = getRange(sensorAddr[n]);  
+  {     
     Serial.print(sensorAddr[n]);
     Serial.print(':');
     Serial.print(sensorDist[n]);  
     Serial.print(',');    
-    delay(1);
+    //delay(1);
   }
   Serial.println();
 }
@@ -502,7 +525,7 @@ void velocityControl(float v1, float w1)
   error_l = (ticks_desired_l - ticks_l);
   error_r = (ticks_desired_r - ticks_r);
     
-  //Left motor PID Controller
+  //Left motor PID Controller  
   l_mot = Kp * (error_l - e_old) + Ki*(error_l + e_old)/2 + Kd*(error_l-2*e_old+e_old2); 
   //Right motor PID Controller
   r_mot = Kp * (error_r - e_old_r) + Ki*(error_r + e_old_r)/2 + Kd*(error_r-2*e_old_r+e_old2_r);    
@@ -512,6 +535,8 @@ void velocityControl(float v1, float w1)
   //Control signals for left and right motor
   l_control += l_mot - error_mot;   
   r_control += r_mot + error_mot; 
+
+  
     
   //Clamps control signals to accepted values
   if (l_control > 2000) l_control = 2000;
