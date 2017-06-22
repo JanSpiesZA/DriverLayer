@@ -1,6 +1,8 @@
 //Code for ultrasonic SRF02 modules on a Arduino Mega board
-//All sesnors are in series adn will be polled when distance data is neede
-//Sensors were previoulsy programmed with unique IDs
+//All sensors are in series and will be polled when distance data is needed
+
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//Sensors must be pre-programmed with unique IDs
 
 
 #define CMD_REAL_RANGE_TX_cm      84
