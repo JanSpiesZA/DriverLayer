@@ -352,14 +352,9 @@ void loop()
   //### This routine sends serial data to PC every deltaTX time    
   int newTimeInterval = time - oldTimeTX;
   if (newTimeInterval > deltaTX)
-  {
-    //Serial.println(" TX Data ");
-//    sendPos();
-//    sendSensor();   
-
-    oldTimeTX = time;
-    delay(10);
-    //Serial.println("Exit: send data");
+  {    
+    sendPos();
+    oldTimeTX = time;    
   }  
 } //end of Loop()
 
