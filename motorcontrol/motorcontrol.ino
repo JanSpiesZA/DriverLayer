@@ -146,7 +146,10 @@ void setup()
 
 void loop()
 {   
-    //###Lees seriedata tot 'n EOL karakter gekry word
+    //###Lees seriedata tot 'n EOL karakter gekry word - 
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // DATA MUST BE SENT ONLY WITH CR and not with CR & LF!!!!!!!
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (Serial.available() >0)
     {
       char c = Serial.read();
