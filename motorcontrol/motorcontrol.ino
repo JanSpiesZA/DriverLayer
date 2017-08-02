@@ -48,10 +48,6 @@ const float PID_dc = 1000 / (delta_t + 1);    //Calcualte how many times this lo
 unsigned long int oldTimeTX = 0;
 int deltaTX = 299;
 
-//### Time variables used to ping each ultrasound sensor
-unsigned long int oldTimePing = 0;
-int deltaPing = 49;
-
 const int lf = 10;    //Declares a line feed character
 
 
@@ -128,26 +124,13 @@ const int maxW = 2;
 
 int txCntr = 0;     //CNTR used to show the amount of transactions already received
 
-
-int sensorAddr[] = {3,0,4,1,5,2,6};     //Array used to store the addresses of the SRF02 sensors in the order in which they must be read
-//sizeof give the amount of bytes used in the array and not the actual elements. When using int every element is 2 bytes long
-//  therefore the value must be divided by the siezeof(int) to get the total amount of elements in the array
-const int numSensors = sizeof(sensorAddr)/ sizeof(int);    
-int sensorDist[numSensors];
-int sensorCnt = 0; //Cntr used to keep track of the sensors ping'ed
-
-double iTerm;
-
 void setup()
 {
   setupMotorControl();
 
   //### Comm port for comms to PC
   Serial.begin(115200);
-  Serial.println("Started:"); 
-
-  //### Comm port for SRF sensors
-  Serial2.begin(9600);
+  Serial.println("PC Comms Started:"); 
 
    lcd.begin(16,2);
    lcd.setCursor(0,0);
@@ -291,30 +274,6 @@ void loop()
           
           break;
         }
-        
-        //Sends the sensor data back through Serial port
-        case 's':
-        {
-          //Reads the distance data saved in each sensor
-//          for (int n = 0; n <= numSensors-1; n++)
-//          { 
-//            sensorDist[n] = getRange(sensorAddr[n]);           
-//            delay(10);
-//          }
-
-          //Sends the data through the Serial port
-          Serial.print('s');
-          for (int n = 0; n <= numSensors-1; n++)
-            {
-              Serial.print(sensorAddr[n]);
-              Serial.print(':');
-              Serial.print(sensorDist[n]);  
-              Serial.print(',');  
-            }
-            Serial.println();
-            break;
-          }
-        
       }
       serialData = "";
     }
@@ -331,7 +290,7 @@ void loop()
     {      
       Serial.print(robotState[0]);
       Serial.print(":");
-      Serial.print(robotState[1]);        
+      Serial.print(robotState[1]);
       Serial.print(":");
       Serial.print(robotState[2]);
       Serial.print('\t');
@@ -393,40 +352,13 @@ void loop()
   if (newTimeInterval > deltaTX)
   {
     //Serial.println(" TX Data ");
-    sendPos();
-    sendSensor();
-    
-    //###Tell sensors to determine range to nearest obstacle
-//    for (int n = 0; n <= numSensors-1; n++)
-//      { 
-//        ping(sensorAddr[n]);
-//        delay(20);
-//      }
+//    sendPos();
+//    sendSensor();   
+
     oldTimeTX = time;
     delay(10);
     //Serial.println("Exit: send data");
-  }
-
-
-
-  //## This routine sends a ping request to a different SRF every deltaPing millis
-  int newPingInterval = time - oldTimePing;
-  if (newPingInterval > deltaPing)
-  {    
-    //Serial.print("PING ");
-    if (sensorCnt <= numSensors-1)
-    {      
-      //Serial.print (sensorCnt);
-      ping(sensorAddr[sensorCnt]);
-      sensorCnt ++;
-      //delay(1);
-    }
-    else
-    {
-      sensorCnt = 0;
-    }
-    oldTimePing = time;    
-  }
+  }  
 } //end of Loop()
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -443,33 +375,6 @@ void sendPos()
   Serial.print(robotState[2]);         
   Serial.println(); 
 }
-
-//###Send sensor data
-void sendSensor()
-{
-  //###Read sensor distance data from all sensors
-  for (int n = 0; n <= numSensors - 1; n++)
-  {
-    if (n != sensorCnt)
-    {
-      sensorDist[n] = getRange(sensorAddr[n]);
-      delay(1);
-    }    
-  }
-
-  //###Send sensor distance to PC
-  Serial.print('d');
-  for (int n = 0; n <= numSensors-1; n++)
-  {     
-    Serial.print(sensorAddr[n]);
-    Serial.print(':');
-    Serial.print(sensorDist[n]);  
-    Serial.print(',');    
-    //delay(1);
-  }
-  Serial.println();
-}
-
 
 //###
 void setupMotorControl()
