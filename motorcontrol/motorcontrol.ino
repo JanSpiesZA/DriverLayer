@@ -145,7 +145,7 @@ void setup()
 }
 
 void loop()
-{  
+{   
     //###Lees seriedata tot 'n EOL karakter gekry word
     if (Serial.available() >0)
     {
@@ -193,13 +193,12 @@ void loop()
             value += serialData.charAt(i);
             
           v = value.toInt();
-
           
           lcd.print(v);
           
           if (debug)
           {
-            Serial.println ("Velocity");          
+            Serial.print ("Velocity: ");          
             Serial.println (v);
           }          
           break;
@@ -274,7 +273,7 @@ void loop()
           
           break;
         }
-      }
+      }      
       serialData = "";
     }
 
