@@ -24,6 +24,7 @@ unsigned long int oldTimeTX = 0;
 int deltaTX = 299;
 
 unsigned long int time = 0;
+#define TimeOut 50
 
 //## This array holds the adresses of the sensors in the sequence with which each one will be pinged
 int sensorAddr[] = {3,0,4,1,5,2,6};
@@ -31,7 +32,7 @@ int sensorAddr[] = {3,0,4,1,5,2,6};
 //##    When using int every element is 2 bytes long therefore the value must be divided by the siezeof(int) 
 //##    to get the total amount of elements in the array
 const int numSensors = sizeof(sensorAddr)/ sizeof(int);    
-unsigned int sensorDist[numSensors];
+unsigned int sensorDist[numSensors];    //Array used to store the values of the distances measured
 int sensorCnt = 0; //Cntr used to keep track of the sensors ping'ed
 unsigned int cntr = 0;
 
@@ -46,7 +47,6 @@ void setup()
   PCComms.println("US Serial port Started:");   
 }
 
-
 //Program flow:
 //  Ping [n]
 //  Get [n-1]
@@ -54,7 +54,7 @@ void setup()
 
 void loop()
 {
-  time = millis();
+//  time = millis();
 
   for (int n = 0; n < numSensors; n++)
   {
@@ -64,49 +64,11 @@ void loop()
     if (n == 0) k = numSensors - 1;    
 
     int tmpRange = getRange(sensorAddr[k]);
-    Serial.print(n); Serial.print(":");
-    Serial.println(k);
-    
+    PCComms.print("d");
+    PCComms.print(sensorAddr[k]);
+    PCComms.print(":");
+    PCComms.println(tmpRange);    
   }
-  while(1);
-  
-//  //### This routine sends serial data to PC every deltaTX time    
-//  int newTimeInterval = time - oldTimeTX;
-//  if (newTimeInterval > deltaTX)
-//  {
-//    //Serial.println(" TX Data ");    
-//    sendSensor();
-//    
-//    //###Tell sensors to determine range to nearest obstacle
-//    for (int n = 0; n < numSensors; n++)
-//      { 
-//        ping(sensorAddr[n]);
-//        delay(20);
-//      }
-//    oldTimeTX = time;
-//    delay(10);
-//    //Serial.println("Exit: send data");
-//  }
-//  
-//  //## This routine sends a ping request to a different SRF every deltaPing millis
-//  int newPingInterval = time - oldTimePing;
-//  if (newPingInterval > deltaPing)
-//  {    
-//    //Serial.print("PING ");
-//    if (sensorCnt <= numSensors-1)
-//    {      
-//      //Serial.print (sensorCnt);
-//      ping(sensorAddr[sensorCnt]);
-//      sensorCnt ++;
-//      //delay(1);
-//    }
-//    else
-//    {
-//      sensorCnt = 0;
-//    }
-//    oldTimePing = time;    
-//  }
-  
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -115,8 +77,8 @@ void loop()
 //### Tasks a sensor in calculating range and holding range data in buffer
 void ping(int _sensorAddr)
 {
-   Serial.print("PING Sensor with adr: #");
-   Serial.println(_sensorAddr);
+//   Serial.print("PING Sensor with adr: #");
+//   Serial.println(_sensorAddr);
    USComms.write(_sensorAddr);
    USComms.write(CMD_REAL_RANGE_NO_TX_cm);
 }
@@ -128,62 +90,28 @@ int getRange(int _sensorAddr)
   static unsigned long timeLastInput = 0;
   unsigned long now;
   bool boolTimeOut = false;
+  unsigned int rxData = 0;
   
-  Serial.print("Requesting data from sensor: #");
-  Serial.println(_sensorAddr);
+//  Serial.print("Requesting data from sensor: #");
+//  Serial.println(_sensorAddr);
   
   USComms.write(_sensorAddr);
   USComms.write(CMD_GET_RANGE);
   
-  //int startTime = millis();
-  //while((USComms.available() < 2));  
-  
-//  unsigned int rxData = USComms.read()<<8;
-//  rxData |= USComms.read();
-  //Serial.println("RX'd");
-
-//  if (USComms.available() > 0)
-//  {
-//    timeLastInput = now;
-//  }
-
-  Serial.println(USComms.available());
-  while ((!USComms.available()) && (!boolTimeOut))
+  timeLastInput = millis();   //Set variable to current time before going into the timeout loop  
+  while ((USComms.available() < 2) && (!boolTimeOut))
   {
-    now = millis();    
-    if (now - timeLastInput > 1000) boolTimeOut = true;          
+    now = millis();  
+    if (now - timeLastInput > TimeOut) boolTimeOut = true;          
   }
 
-  if (boolTimeOut) Serial.println("Time out");
+  if (USComms.available() == 2)
+  {
+    rxData = USComms.read() << 8;
+    rxData |= USComms.read();    
+  }
   
-  return;// rxData;
-}
-
-//###Send sensor data
-void sendSensor()
-{
-  //###Read sensor distance data from all sensors
-//  for (int n = 0; n < numSensors; n++)
-//  {
-//    if (n != sensorCnt)
-//    {
-//      sensorDist[n] = getRange(sensorAddr[n]);
-//      delay(10);
-//    }    
-//  }
-
-//  PCComms.println(cntr);
-//  cntr++;
-  //###Send sensor distance to PC
-  PCComms.print('d');
-  for (int n = 0; n < numSensors; n++)
-  {     
-    PCComms.print(sensorAddr[n]);
-    PCComms.print(':');
-    PCComms.print(sensorDist[n]);  
-    PCComms.print(',');        
-  }
-  PCComms.println();
+  return rxData;
 }
 
 
