@@ -28,6 +28,7 @@ unsigned long int time = 0;
 
 //## This array holds the adresses of the sensors in the sequence with which each one will be pinged
 int sensorAddr[] = {3,0,4,1,5,2,6};
+//int sensorAddr[] = {4,6};
 //## The function SIZEOF gives the amount of bytes used in the array and not the actual elements. 
 //##    When using int every element is 2 bytes long therefore the value must be divided by the siezeof(int) 
 //##    to get the total amount of elements in the array
@@ -54,10 +55,12 @@ void setup()
 
 void loop()
 {
-//  time = millis();
-
+//  time = millis();  
+  
   for (int n = 0; n < numSensors; n++)
   {
+    delay(20);   //This delay ensure that ultrasonic waves disipated enough before pinging the next sensor, might be changed with millis()
+    
     ping (sensorAddr[n]);
 
     int k = n - 1;
