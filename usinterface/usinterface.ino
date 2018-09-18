@@ -11,7 +11,7 @@
 
 //## Defines the serial ports and baud rates used by the program
 #define PCComms Serial
-#define PCBaud 115200
+#define PCBaud 9600
 #define USComms Serial2
 #define USBaud 9600
 
@@ -54,24 +54,26 @@ void setup()
 //  Send [n-1]
 
 void loop()
-{
-//  time = millis();  
-  
+{  
   for (int n = 0; n < numSensors; n++)
   {
-    delay(20);   //This delay ensure that ultrasonic waves disipated enough before pinging the next sensor, might be changed with millis()
-    
+    delay(20);   //This delay ensure that ultrasonic waves disipated enough before pinging the next sensor, might be changed with millis()    
     ping (sensorAddr[n]);
-
-    int k = n - 1;
-    if (n == 0) k = numSensors - 1;    
-
-    int tmpRange = getRange(sensorAddr[k]);
-    PCComms.print("d");
-    PCComms.print(sensorAddr[k]);
-    PCComms.print(":");
-    PCComms.println(tmpRange);    
   }
+
+  String outData = "d";
+  for (int n = 0; n < numSensors; n++)
+  {
+    int tmpRange = getRange(n);
+    outData += n;
+    outData += ":";
+    outData += tmpRange;
+    if (n != numSensors-1)      //Do not add a comma after the last sensor data is added to the string
+    {
+      outData += ",";
+    }
+  }
+  PCComms.println(outData);  
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
