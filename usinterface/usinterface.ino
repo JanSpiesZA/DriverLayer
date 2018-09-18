@@ -25,6 +25,7 @@ int deltaTX = 299;
 
 unsigned long int time = 0;
 #define TimeOut 50
+#define pingDelay 20      //Delay time used to wait before next sensor is pinged to get distance data
 
 //## This array holds the adresses of the sensors in the sequence with which each one will be pinged
 int sensorAddr[] = {3,0,4,1,5,2,6};
@@ -57,7 +58,7 @@ void loop()
 {  
   for (int n = 0; n < numSensors; n++)
   {
-    delay(20);   //This delay ensure that ultrasonic waves disipated enough before pinging the next sensor, might be changed with millis()    
+    delay(pingDelay);   //This delay ensure that ultrasonic waves disipated enough before pinging the next sensor, might be changed with millis()    
     ping (sensorAddr[n]);
   }
 
