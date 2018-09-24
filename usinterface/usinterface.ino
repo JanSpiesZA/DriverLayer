@@ -11,7 +11,7 @@
 
 //## Defines the serial ports and baud rates used by the program
 #define PCComms Serial
-#define PCBaud 115200
+#define PCBaud 9600
 #define USComms Serial2
 #define USBaud 9600
 
@@ -25,9 +25,11 @@ int deltaTX = 299;
 
 unsigned long int time = 0;
 #define TimeOut 50
+#define pingDelay 20      //Delay time used to wait before next sensor is pinged to get distance data
 
 //## This array holds the adresses of the sensors in the sequence with which each one will be pinged
 int sensorAddr[] = {3,0,4,1,5,2,6};
+//int sensorAddr[] = {4,6};
 //## The function SIZEOF gives the amount of bytes used in the array and not the actual elements. 
 //##    When using int every element is 2 bytes long therefore the value must be divided by the siezeof(int) 
 //##    to get the total amount of elements in the array
@@ -53,22 +55,26 @@ void setup()
 //  Send [n-1]
 
 void loop()
-{
-//  time = millis();
-
+{  
   for (int n = 0; n < numSensors; n++)
   {
+    delay(pingDelay);   //This delay ensure that ultrasonic waves disipated enough before pinging the next sensor, might be changed with millis()    
     ping (sensorAddr[n]);
-
-    int k = n - 1;
-    if (n == 0) k = numSensors - 1;    
-
-    int tmpRange = getRange(sensorAddr[k]);
-    PCComms.print("d");
-    PCComms.print(sensorAddr[k]);
-    PCComms.print(":");
-    PCComms.println(tmpRange);    
   }
+
+  String outData = "d";
+  for (int n = 0; n < numSensors; n++)
+  {
+    int tmpRange = getRange(n);
+    outData += n;
+    outData += ":";
+    outData += tmpRange;
+    if (n != numSensors-1)      //Do not add a comma after the last sensor data is added to the string
+    {
+      outData += ",";
+    }
+  }
+  PCComms.println(outData);  
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
