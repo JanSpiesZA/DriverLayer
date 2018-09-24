@@ -315,7 +315,9 @@ void loop()
     delta_y = s*sin(robotState[2]);
     robotState[0] += delta_x;
     robotState[1] += delta_y;    
-    robotState[2] += delta_phi;  
+    robotState[2] += delta_phi;      
+
+    
 
     if (robotState[2] < -PI) robotState[2] += 2*PI;
     if (robotState[2] > PI) robotState[2] -= 2*PI;
@@ -365,12 +367,15 @@ void loop()
 void sendPos()
 {
   Serial.print("?");
-  Serial.print(robotState[0]);
+//  Serial.print(robotState[0]);
+//  Serial.print(",");
+//  Serial.print(robotState[1]);        
+//  Serial.print(",");
+//  Serial.print(robotState[2]);         
+//  Serial.println(); 
+  Serial.print(s);
   Serial.print(",");
-  Serial.print(robotState[1]);        
-  Serial.print(",");
-  Serial.print(robotState[2]);         
-  Serial.println(); 
+  Serial.println(delta_phi);
 }
 
 //###
