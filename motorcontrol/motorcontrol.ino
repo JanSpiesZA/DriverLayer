@@ -127,6 +127,8 @@ int txCntr = 0;     //CNTR used to show the amount of transactions already recei
 void setup()
 {
   setupMotorControl();
+  leftWheelServo.writeMicroseconds(1500);
+  rightWheelServo.writeMicroseconds(1500);
 
   //### Comm port for comms to PC
   Serial.begin(115200);
