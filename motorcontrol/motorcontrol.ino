@@ -92,7 +92,7 @@ float error_mot;
 
 //ONLY CHANGE THIS UNDER SPECIAL CIRCUMSTANCES
 //Constants for the robot's physical parameters
-const int ticks_per_rev = 144; //36; //1632;  //Ticks per revolution
+const int ticks_per_rev = 134; //36; //1632;  //Ticks per revolution
 const float wheelbase = 392.74;      //Wheelbase of chassis in milli-meters
 const float wheel_radius = 76.58;  //Wheel radii in milli-meters
 const float wheel_circ = 2*pi*wheel_radius;
@@ -248,10 +248,19 @@ void loop()
         {
           //Serial.println("phi_desired");
           //Serial.println(serialData);
-          int p_index = serialData.indexOf('p');
+
+          char sign = serialData.charAt(1);   //Test the sign of the angle
+          
           int len = serialData.length();          
           String value = "";
-          for (int i = 1; i <= len; i++) value += serialData.charAt(i);          
+          
+          for (int i = 2; i <= len; i++) //Start at location 2 to get the requested change in angle
+          {
+            value += serialData.charAt(i);          
+          }
+
+          
+          
           int delta_phi = 0;
           delta_phi = value.toInt();
           float delta_phi_float = delta_phi/1000.0;
