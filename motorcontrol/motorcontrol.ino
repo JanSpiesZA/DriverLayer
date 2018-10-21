@@ -97,12 +97,13 @@ const float wheelbase = 392.74;      //Wheelbase of chassis in milli-meters
 const float wheel_radius = 76.58;  //Wheel radii in milli-meters
 const float wheel_circ = 2*pi*wheel_radius;
 const float seg_lin_distance = wheel_circ / ticks_per_rev;
+
 //Gain parameters for the speed controller PID controller
-float Kp = 0.5;      // Proportional gain for PID controller
+float Kp = 1.0;      // Proportional gain for PID controller
 float Ki = 0.5;
-float Kd = 0.1;
-float Kp_speed = 0.0;
-float Ki_speed = 0.0;
+float Kd = 0.2;
+float Kp_speed = 0.1;
+float Ki_speed = 0.1;
 
 //USER DEFINED VARIABLES
 boolean debug = false;
@@ -407,15 +408,21 @@ void loop()
 void sendPos()
 {
   Serial.print("?");
-//  Serial.print(robotState[0]);
-//  Serial.print(",");
-//  Serial.print(robotState[1]);        
-//  Serial.print(",");
-//  Serial.print(robotState[2]);         
-//  Serial.println(); 
-  Serial.print(s);
+  Serial.print(boolGo);
   Serial.print(",");
-  Serial.println(delta_phi);
+  Serial.print(x_goal);
+  Serial.print(",");
+  Serial.print(y_goal);
+  Serial.print(",");
+  Serial.print(robotState[0]);
+  Serial.print(",");
+  Serial.print(robotState[1]);        
+  Serial.print(",");
+  Serial.print(robotState[2]);         
+  Serial.println(); 
+//  Serial.print(s);
+//  Serial.print(",");
+//  Serial.println(delta_phi);
 }
 
 //###
