@@ -119,10 +119,15 @@ float e_angle_old = 0.0;
 float w_old = 0.0;
 float phi_desired = 0.0;
 
-const int maxV = 400;
+const int maxV = 200;
 const int maxW = 2;
 
 int txCntr = 0;     //CNTR used to show the amount of transactions already received
+
+float x_goal = 500;    //x_goal in millimeters from current location
+float y_goal = 0;   //y_goal in millimeters from current location
+
+boolean boolGo = false;
 
 void setup()
 {
@@ -282,10 +287,28 @@ void loop()
           break;
         }
         
-        case '?':
-        {              
-          
+        case 'm':
+        { 
+          boolGo = !boolGo;
           break;
+        }
+
+        //y and y goal location using the robot grid reference
+        //No delimiter is used: first 3 characters are new x goal and second three characters are new y goal
+        case 'g':
+        {
+          int len = serialData.length();
+          String value = "";
+          for (int i = 1; i <= 3; i++) 
+            value += serialData.charAt(i);
+
+          x_goal = value.toInt();
+
+          value = "";
+          for (int i = 4; i <= 6; i++) 
+            value += serialData.charAt(i);
+
+          y_goal = value.toInt();
         }
       }      
       serialData = "";
@@ -345,23 +368,29 @@ void loop()
     w = max(w, -1);
     w_old = w;
     e_angle_old = e_angle;    
-    */       
+*/          
 
-//    phi_desired = w;
-//    float errorAngle = phi_desired - robotState[2];
-//
-//    if (errorAngle < -PI) errorAngle += (2*PI);
-//    if (errorAngle > PI) errorAngle -= (2*PI);  
-//
-//    w = 3*min(errorAngle,150);      
+
+
     
     v = min (v, maxV);
     v = max (v, -maxV);
-    velocityControl(v,w);      //Sends new v and w values to the motor controller 
+
+
+    if (boolGo) 
+    {
+      velocityControl(v,w);      //Sends new v and w values to the motor controller 
+    }
+    else
+    {
+      v = 0;
+      w = 0;
+      velocityControl(v,w);
+    }
 
     old_time = time;    
   }  //end of PID Interval
-
+  
   //### This routine sends serial data to PC every deltaTX time    
   int newTimeInterval = time - oldTimeTX;
   if (newTimeInterval > deltaTX)
