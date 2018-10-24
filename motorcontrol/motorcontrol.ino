@@ -92,11 +92,13 @@ float error_mot;
 
 //ONLY CHANGE THIS UNDER SPECIAL CIRCUMSTANCES
 //Constants for the robot's physical parameters
-const int ticks_per_rev = 134; //36; //1632;  //Ticks per revolution
+const int left_ticks_per_rev = 36; //36; //1632;  //Ticks per revolution
+const int right_ticks_per_rev = 144; //36; //1632;  //Ticks per revolution
 const float wheelbase = 392.74;      //Wheelbase of chassis in milli-meters
 const float wheel_radius = 76.58;  //Wheel radii in milli-meters
 const float wheel_circ = 2*pi*wheel_radius;
-const float seg_lin_distance = wheel_circ / ticks_per_rev;
+const float left_seg_lin_distance = wheel_circ / left_ticks_per_rev;
+const float right_seg_lin_distance = wheel_circ / right_ticks_per_rev;
 
 //Gain parameters for the speed controller PID controller
 float Kp = 1.0;      // Proportional gain for PID controller
@@ -341,8 +343,8 @@ void loop()
       Serial.println();
     }
     
-    s_l = 2*pi*wheel_radius * ticks_l / PID_dc / ticks_per_rev;   //Must devide by PID_dc in order to get real delta value
-    s_r = 2*pi*wheel_radius * ticks_r / PID_dc / ticks_per_rev;    
+    s_l = 2*pi*wheel_radius * ticks_l / PID_dc / left_ticks_per_rev;   //Must devide by PID_dc in order to get real delta value
+    s_r = 2*pi*wheel_radius * ticks_r / PID_dc / right_ticks_per_rev;    
     s = (s_l + s_r) / 2;
     delta_phi = (s_r - s_l) / wheelbase;    //+w = counter clockwise
     
@@ -467,9 +469,9 @@ void velocityControl(float v1, float w1)
     
   //wheel_circ = 1/(2*pi*radius-of-weel)
   float dotOmega_L = (v1 - wheelbase/2*w1)/wheel_circ;    //Embedded Robotics, Chp 8.6, p 143, Inverse Kinematics
-  ticks_desired_l = dotOmega_L * ticks_per_rev;
+  ticks_desired_l = dotOmega_L * left_ticks_per_rev;
   float dotOmega_R = (v1 + wheelbase/2*w1)/wheel_circ;
-  ticks_desired_r = dotOmega_R * ticks_per_rev;
+  ticks_desired_r = dotOmega_R * right_ticks_per_rev;
   
   /* OLD FORMULAS
   ticks_desired_l = (v1*PID_dc - (wheelbase*w1)/2) * (ticks_per_rev / (2*pi*wheel_radius));
