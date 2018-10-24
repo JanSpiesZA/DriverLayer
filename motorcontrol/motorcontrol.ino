@@ -352,12 +352,28 @@ void loop()
     delta_y = s*sin(robotState[2]);
     robotState[0] += delta_x;
     robotState[1] += delta_y;    
-    robotState[2] += delta_phi;      
+    robotState[2] += delta_phi;
 
-    
+    float phi_desired = atan2((y_goal - robotState[1]), (x_goal - robotState[0]));
 
-    if (robotState[2] < -PI) robotState[2] += 2*PI;
-    if (robotState[2] > PI) robotState[2] -= 2*PI;
+    float errorAngle = phi_desired - robotState[2];
+
+    if (errorAngle < -PI) errorAngle += (2*PI);
+    if (errorAngle > PI) errorAngle -= (2*PI);  
+
+    w = min(errorAngle,150);   
+
+    float distToGoal = sqrt(pow(x_goal - robotState[0],2) + pow(y_goal - robotState[1],2));        
+        
+    v = min (distToGoal, maxV);     
+  
+    if (distToGoal < 50)
+    {
+      boolGo = false;
+    }
+
+//    if (robotState[2] < -PI) robotState[2] += 2*PI;
+//    if (robotState[2] > PI) robotState[2] -= 2*PI;
 
     
     
