@@ -267,16 +267,15 @@ void loop()
           for (int i = 2; i <= len; i++) //Start at location 2 to get the requested change in angle
           {
             value += serialData.charAt(i);          
-          }
-
-          
+          }          
           
           int delta_phi = 0;
           delta_phi = value.toInt();
           float delta_phi_float = delta_phi/1000.0;
           phi_desired = delta_phi_float;
+          //phi_desired = atan2((y_goal - robotState[1]), (x_goal - robotState[0]));  //Determine the new angle the robot must face after receiving this command                 
           //Serial.println(delta_phi_float);
-          //Serial.println(phi_desired);         
+          //Serial.println(phi_desired);
           break;
         }
 
@@ -291,14 +290,15 @@ void loop()
           debug = !debug;      //Flip boolean value between TRUE and FALSE
           break;
         }
-        
+
+        //Toggles boolGo value. If boolGo is enabled, the v and w values will be sent to velocityControll
         case 'm':
         { 
           boolGo = !boolGo;
           break;
         }
 
-        //y and y goal location using the robot grid reference
+        //x and y goal location using the robot grid reference
         //No delimiter is used: first 3 characters are new x goal and second three characters are new y goal
         case 'g':
         {
