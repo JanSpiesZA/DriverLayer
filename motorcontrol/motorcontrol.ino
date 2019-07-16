@@ -249,6 +249,8 @@ void loop()
           robotState[1] = 0.0;
           robotState[2] = 0.0;
           phi_desired = 0.0;
+          x_goal = 0.0;
+          y_goal = 0.0;
           break;
         }
         
